@@ -169,11 +169,11 @@ setInterval(() => { try { renderAuditTab(); } catch(e) {} }, 2000);   // 開著�
 // killMob() 只負責「標記死亡＋發放獎勵/掉落」；原格清空與目標重鎖延後到 settleDeadMobs()（v2.7.47 起不再遞補壓實）。
 // tick 內的擊殺由 gameLoop 在 tick 結束後統一清算；手動操作（點技能/道具）觸發的擊殺立即清算。
 // 好處：怪物迭代過程中陣列不再位移，徹底杜絕「怪物被跳過回合 / 索引指到錯的怪」這類隱性錯誤。
-function classicDropMult() { return player.classicMode ? 0.1 : 1; }   // 🎮 經典模式：所有物品掉落機率 ×1/10
+function classicDropMult() { return player.classicMode ? 0.1 : 10000; }   // 🎮 經典模式：所有物品掉落機率 ×1/10
 // 🎮 經典模式例外（照原機率掉、不受 ×1/10）：① 職業專屬試煉道具（TRIAL_ITEM_CLASS 內者）——避免 50 級試煉在經典模式難度暴增 10 倍；② 🏺 遺物——原機率已是 0.0001%，再打折等於拿不到。其餘物品仍套用 classicDropMult。用於 MOB_DROPS／DRAGON_DROPS 兩張掉落表。
 function classicExemptDropMult(id) {
-    if (typeof TRIAL_ITEM_CLASS !== 'undefined' && TRIAL_ITEM_CLASS[id]) return 1;
-    if (isRelic(DB.items[id])) return 1;
+    if (typeof TRIAL_ITEM_CLASS !== 'undefined' && TRIAL_ITEM_CLASS[id]) return 10000;
+    if (isRelic(DB.items[id])) return 10000;
     return classicDropMult();
 }
 function killMob(idx) {
@@ -300,7 +300,7 @@ function killMob(idx) {
 
     // === 怪物專屬掉落（依「怪物掉落資料.md」）：每樣物品各自獨立判定一次 ===
     let dropList = _kbNoReward ? [] : (MOB_DROPS[mob.n] || []);   // 🔧 魔獸軍王之室：除頭目外不掉落物品
-    let _dropBase = (mob._grace ? 10 : (mob._sherine ? (mob._sherineMad ? 5 : 3) : 1000));   // 🔮 席琳的世界 ×3（瘋狂×5）／恩賜怪 ×10（不含經典 ×1/10，供試煉道具用）
+    let _dropBase = (mob._grace ? 10 : (mob._sherine ? (mob._sherineMad ? 5 : 3) : 10000));   // 🔮 席琳的世界 ×3（瘋狂×5）／恩賜怪 ×10（不含經典 ×1/10，供試煉道具用）
     let _dropMult = _dropBase * classicDropMult();   // 🎮 經典模式：×1/10（涵蓋怪物掉落表／黑暗武器／黑精靈水晶／祝福卷軸／區域額外掉落；試煉道具與遺物走 _dropBase×classicExemptDropMult 不受 ×1/10）
     dropList.forEach(entry => {
         let itemId = entry[0];
